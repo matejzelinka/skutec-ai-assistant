@@ -1,0 +1,1 @@
+# skutec-ai-assistant
