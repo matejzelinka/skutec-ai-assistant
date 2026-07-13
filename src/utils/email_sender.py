@@ -13,6 +13,38 @@ SMTP_PORT = 465
 EMAIL_TO = "matej.zelinka@skutec.cz"
 
 
+def format_locations(event: dict) -> str:
+    locations = {}
+
+    for location in event["locations"]:
+        part = location["part"]
+        street = location.get("street")
+
+        if part not in locations:
+            locations[part] = []
+
+        if (
+            street
+            and street != part
+            and street not in locations[part]
+        ):
+            locations[part].append(street)
+
+    formatted_locations = []
+
+    for part, streets in locations.items():
+        if streets:
+            streets_text = ", ".join(streets)
+
+            formatted_locations.append(
+                f"{part} ({streets_text})"
+            )
+        else:
+            formatted_locations.append(part)
+
+    return ", ".join(formatted_locations)
+
+
 def send_outage_email(
     event: dict,
     attachments: list[Path],
@@ -38,27 +70,19 @@ def send_outage_email(
         event["to"]
     )
 
-    parts = []
-
-    for location in event["locations"]:
-        part = location["part"]
-
-        if part not in parts:
-            parts.append(part)
-
-    locations = ", ".join(parts)
+    locations = format_locations(event)
 
     subject = (
         "Nová odstávka elektřiny – "
-        f"{start.strftime('%d. %m. %Y')}"
+        f"{start.strftime('%d.%m.%Y')}"
     )
 
     body = (
         "Byla nalezena nová plánovaná "
         "odstávka elektrické energie.\n\n"
-        f"Termín: {start.strftime('%d. %m. %Y')}\n"
-        f"Čas: {start.strftime('%H:%M')}"
-        f"–{end.strftime('%H:%M')}\n"
+        f"Termín: {start.strftime('%d.%m.%Y')}\n"
+        f"Čas: {start.strftime('%H:%M')} "
+        f"– {end.strftime('%H:%M')}\n"
         f"Lokality: {locations}\n\n"
         "V příloze jsou připraveny podklady "
         "pro web, SMS a sociální sítě."
