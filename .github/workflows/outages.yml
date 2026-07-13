@@ -1,0 +1,50 @@
+name: Kontrola odstavek CEZ
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "0 7 * * *"
+      timezone: "Europe/Prague"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skutec-outages
+  cancel-in-progress: false
+
+jobs:
+  check-outages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Stazeni projektu
+        uses: actions/checkout@v4
+
+      - name: Nastaveni Pythonu
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalace zavislosti
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Kontrola odstavek
+        run: python main.py
+
+      - name: Ulozeni historie
+        run: |
+          if git diff --quiet -- data/processed_outages.json; then
+            echo "Historie se nezmenila."
+            exit 0
+          fi
+
+          git config user.name "Skutec AI Assistant"
+          git config user.email "github-actions@github.com"
+
+          git add data/processed_outages.json
+          git commit -m "Update processed outages"
+          git push
