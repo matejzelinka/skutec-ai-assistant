@@ -6,6 +6,7 @@ from src.generators.article_generator import generate_article
 from src.generators.sms_generator import generate_sms
 from src.generators.social_generator import generate_social
 from src.generators.graphic_generator import generate_graphic
+from src.utils.email_sender import send_outage_email
 from src.utils.formatter import parse_datetime
 from src.utils.history import (
     is_processed,
@@ -114,6 +115,26 @@ def main():
             graphic_path,
         )
 
+        # E-mailová notifikace
+        attachments = [
+            web_path,
+            sms_path,
+            social_path,
+            graphic_path,
+            pdf_path,
+        ]
+
+        print(
+            "✉ Odesílám e-mailovou notifikaci..."
+        )
+
+        send_outage_email(
+            event,
+            attachments,
+        )
+
+        # Odstávku označíme jako zpracovanou
+        # až po úspěšném odeslání e-mailu
         mark_as_processed(
             event_id
         )
