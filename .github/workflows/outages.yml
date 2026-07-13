@@ -50,4 +50,6 @@ jobs:
 
           git add data/processed_outages.json
           git commit -m "Update processed outages"
-          git push
+
+          git pull --rebase origin main
+          git push origin main
