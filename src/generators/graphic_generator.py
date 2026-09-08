@@ -277,6 +277,17 @@ def format_graphic_locations(
     for location in event["locations"]:
         part = location["part"]
 
+        # Skuteč zobrazujeme v grafice pouze tehdy,
+        # pokud je skutečně dotčena konkrétní adresa
+        # nebo ulice. Samotné evidenční číslo
+        # (např. č. ev. 5) do grafiky nepatří.
+        if part == "Skuteč":
+            if not (
+                location["street"]
+                or location["house_numbers"]
+            ):
+                continue
+
         if part not in parts:
             parts.append(part)
 
@@ -284,9 +295,7 @@ def format_graphic_locations(
         if parts[0] == "Skuteč":
             return "ve Skutči"
 
-        return (
-            f"v {decline_place(parts[0])}"
-        )
+        return f"v {decline_place(parts[0])}"
 
     declined = []
 
